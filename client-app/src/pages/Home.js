@@ -1,20 +1,65 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import useData from "../hooks/useData";
 import { PostItem, LoaderSpinner, SideBar } from "../components/index";
 import { useTitle } from '../hooks/useTitle'
 import { toast } from "react-toastify";
+import ReactPaginate from "react-paginate";
+
 export const Home = () => {
 
+    let limit = 10;
+
+    const [pageIndex, setPageIndex] = useState(1);
+    const [pageCount, setpageCount] = useState(0);
     //toast.error('err.message');
 
     useTitle("Home Page");
 
     const { data, loading, error } = useData(
-        "/Posts/List"
+        `/Posts/PostsPagedList?orderAscendingDirection=true&pageIndex=${pageIndex}&pageSize=${limit}`
+        , null,
+        [pageIndex]
     );
+
+    const handlePageClick = (data) => {
+        console.log(data.selected);
+
+        setPageIndex(data.selected + 1);
+
+        // const commentsFormServer =  fetchComments(currentPage);
+
+        // setItems(commentsFormServer);
+        // scroll to the top
+        window.scrollTo(0, 0)
+    };
+
+    useEffect(() => {
+        if (data) {
+            console.log('set Page Count ' + pageCount);
+            setpageCount(data.totalPages);
+        }
+
+    }, [data]);
+
+    // useEffect(() => {
+    //     const getComments = async () => {
+    //         const res = await fetch(
+    //             `http://localhost:3004/comments?_page=1&_limit=${limit}`
+    //             // `https://jsonplaceholder.typicode.com/comments?_page=1&_limit=${limit}`
+    //         );
+    //         const data = await res.json();
+    //         const total = res.headers.get("x-total-count");
+    //         setpageCount(Math.ceil(total / limit));
+    //         // console.log(Math.ceil(total/12));
+    //         setItems(data);
+    //     };
+
+    //     getComments();
+    // }, [limit]);
+
     return (
         <>
-
+            {console.log(data)}
             <section>
                 <div className="container">
                     <div className="row">
@@ -42,8 +87,8 @@ export const Home = () => {
                         <div className="col-lg-8">
 
                             {loading && <LoaderSpinner />}
-                            {data &&
-                                data.map((post) => (
+                            {data?.data &&
+                                data?.data?.map((post) => (
                                     <PostItem post={post} key={post.id} />
                                 ))
                             }
@@ -51,7 +96,7 @@ export const Home = () => {
                             {/* <!--  Pagination--> */}
                             <div className="row">
                                 <div className="col-lg-12">
-                                    <ul className="pagination">
+                                    {/* <ul className="pagination">
                                         <li className="next"><a href="#"><i className="icofont-rounded-left"></i></a></li>
                                         <li className="active"><a href="#">1</a></li>
                                         <li><a href="#">2</a></li>
@@ -59,7 +104,27 @@ export const Home = () => {
                                         <li><a href="#">4</a></li>
                                         <li><a href="#">5</a></li>
                                         <li className="prev"><a href="#"><i className="icofont-rounded-right"></i></a></li>
-                                    </ul>
+                                    </ul> */}
+
+                                    <ReactPaginate
+                                        previousLabel={"previous"}
+                                        nextLabel={"next"}
+                                        breakLabel={"..."}
+                                        pageCount={pageCount}
+                                        marginPagesDisplayed={2}
+                                        pageRangeDisplayed={3}
+                                        onPageChange={handlePageClick}
+                                        containerClassName={"pagination justify-content-center"}
+                                        pageClassName={"page-item"}
+                                        pageLinkClassName={"page-link"}
+                                        previousClassName={"page-item"}
+                                        previousLinkClassName={"page-link"}
+                                        nextClassName={"page-item"}
+                                        nextLinkClassName={"page-link"}
+                                        breakClassName={"page-item"}
+                                        breakLinkClassName={"page-link"}
+                                        activeClassName={"active"}
+                                    />
                                 </div>
                             </div>
                             {/* <!--  Pagination end--> */}
