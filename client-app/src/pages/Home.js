@@ -26,40 +26,22 @@ export const Home = () => {
 
         setPageIndex(data.selected + 1);
 
-        // const commentsFormServer =  fetchComments(currentPage);
-
-        // setItems(commentsFormServer);
         // scroll to the top
         window.scrollTo(0, 0)
     };
 
     useEffect(() => {
         if (data) {
-            console.log('set Page Count ' + pageCount);
+            console.log('set Page Count ' + pageCount, data);
             setpageCount(data.totalPages);
         }
 
     }, [data]);
 
-    // useEffect(() => {
-    //     const getComments = async () => {
-    //         const res = await fetch(
-    //             `http://localhost:3004/comments?_page=1&_limit=${limit}`
-    //             // `https://jsonplaceholder.typicode.com/comments?_page=1&_limit=${limit}`
-    //         );
-    //         const data = await res.json();
-    //         const total = res.headers.get("x-total-count");
-    //         setpageCount(Math.ceil(total / limit));
-    //         // console.log(Math.ceil(total/12));
-    //         setItems(data);
-    //     };
-
-    //     getComments();
-    // }, [limit]);
 
     return (
         <>
-            {console.log(data)}
+
             <section>
                 <div className="container">
                     <div className="row">
