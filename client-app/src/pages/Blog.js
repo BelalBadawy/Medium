@@ -1,23 +1,63 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import { LoaderSpinner, SideBar } from "../components/index";
+import { Route, Link, Routes, useParams } from 'react-router-dom';
+import useData from "../hooks/useData";
 
 export const Blog = () => {
+
+    const params = useParams();
+
+    let postId = params.id;
+
+    const { data, loading, error } = useData(
+        `/Posts/PostDetails?id=${postId}`
+        , null,
+        [postId]
+    );
+
+    const options = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    };
+
     return (
         <>
+            {console.log(data)}
+
             <section>
+                {loading && <LoaderSpinner />}
+                {error &&
+
+                    { error }
+
+                }
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-12">
                             <div className="page-title">
                                 <div className="row">
                                     <div className="col-lg-9">
-                                        <h2>Beautiful Day With Friends In Paris</h2>
-                                        <ul className="post-meta">
-                                            <li><i className="icofont-ui-calendar"></i> Feb 18, 2020</li>
-                                            <li><i className="icofont-tags"></i> <a href="#">Branding</a>, <a href="#">Design</a></li>
-                                            <li><i className="icofont-comment"></i> <a href="#">3 Comments</a></li>
-                                            <li><i className="icofont-user-alt-5"></i> <a href="#">Admin</a></li>
-                                        </ul>
+                                        {data &&
+                                            <>
+                                                <h2>{data.title}</h2>
+                                                <ul className="post-meta">
+                                                    <li><i className="icofont-ui-calendar"></i>   {new Date(data.createdDate).toLocaleString("en-US", options)}</li>
+                                                    <li><i className="icofont-tags"></i> {" "}
+                                                        {/* <a href="#">Branding</a>, <a href="#">Design</a> */}
+                                                        {data.postCategories.map((c, index) => (
+                                                            <Fragment key={index}>
+                                                                <a href="#" key={index}>{c} {index + 1 < data.postCategories.length ? ", " : ""}</a>
+                                                            </Fragment>
+                                                        ))}
+
+
+                                                    </li>
+                                                    <li><i className="icofont-comment"></i> <a href="#">{data.postCommentsCount} Comments</a></li>
+                                                    <li><i className="icofont-user-alt-5"></i> <a href="#">{data.userName}</a></li>
+                                                </ul>
+                                            </>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -38,25 +78,20 @@ export const Blog = () => {
                             <article className="post">
 
                                 <div className="post-preview">
-                                    <a href="#"><img src="images/blog/blog-4.jpg" alt="" className="img-fluid rounded" /></a>
+                                    <a href="#"><img src="/images/blog/blog-4.jpg" alt="" className="img-fluid rounded" /></a>
                                 </div>
 
                                 <div className="blog-detail-description">
-                                    <p>Donec eleifend accumsan nibh eu efficitur. Vivamus lacinia ut turpis egestas convallis. Quisque nec accumsan justo. Maecenas auctor in nulla nec tincidunt. Pellentesque rutrum molestie tortor, ut egestas risus commodo a. Praesent a orci nec libero fringilla euismod eu id massa. Nunc eget bibendum odio, sed sodales eros.Vivamus lacinia, mi eu ultrices mattis.</p>
-
-                                    <p>Donec eleifend accumsan nibh eu efficitur. Vivamus lacinia ut turpis egestas convallis. Quisque nec accumsan justo. Maecenas auctor in nulla nec tincidunt. Pellentesque rutrum molestie tortor, ut egestas risus commodo a. Praesent a orci nec libero fringilla euismod eu id massa. Nunc eget bibendum odio, sed sodales eros.Vivamus lacinia, mi eu ultrices mattis.</p>
-
-
-                                    <blockquote>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore.</blockquote>
-
-                                    <p>Quisque nec accumsan justo. Maecenas auctor in nulla nec tincidunt. Pellentesque rutrum molestie tortor, ut egestas risus commodo a. Praesent a orci nec libero fringilla euismod eu id massa. Nunc eget bibendum odio, sed sodales eros.Vivamus lacinia, mi eu ultrices mattis.</p>
+                                    <p>{data.content}</p>
 
                                     <div className="margin-t-30">
                                         <h5>Tags:</h5>
                                         <div className="tagcloud">
-                                            <a href="#">logo</a>
-                                            <a href="#">business</a>
-                                            <a href="#">agency</a>
+                                            {data?.postTags?.map((t) => (
+                                                <a href="#" key={t}>{t}</a>
+                                            ))}
+
+
                                         </div>
                                     </div>
 

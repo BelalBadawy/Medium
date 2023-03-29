@@ -5,6 +5,6 @@ export const AllRoutes = () => {
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
-            <Route path="/blog:id" element={<Blog />} />
+            <Route path="/blog/:id" element={<Blog />} />
         </Routes>);
 };

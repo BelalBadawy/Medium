@@ -190,5 +190,40 @@ namespace MediumAPI.Controllers
 
             return NoContent();
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<ActionResult> PostDetails(int id)
+        {
+            try
+            {
+                var result = await _dbContext.Posts.Where(o => o.IsActive && o.Id == id)
+                               .Select(o => new PostDto
+                               {
+                                   Id = o.Id,
+                                   Title = o.Title,
+                                   BannerImageUrl = o.BannerImageUrl,
+                                   CreatedDate = o.CreatedDate,
+                                   Description = o.Description,
+                                   Content = o.PostContent,
+                                   PostCommentsCount = o.PostComments.Count(o => o.IsActive),
+                                   Slug = o.Slug,
+                                   UserId = o.UserId,
+                                   UserName = _dbContext.ApplicationUsers.First(x => x.Id == o.UserId).UserName,
+                                   ViewCount = o.ViewCount,
+                                   PostTags = o.PostTags.Where(x => x.Tags.IsActive).Select(t => t.Tags.Title).ToList(),
+                                   PostCategories = o.PostCategories.Where(x => x.Categories.IsActive).Select(c => c.Categories.Title).ToList()
+                               })
+                               .AsNoTracking().FirstOrDefaultAsync();
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }
