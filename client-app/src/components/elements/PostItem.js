@@ -13,7 +13,7 @@ export const PostItem = (props) => {
   return (
     <article className="post" key={id}>
       <div className="post-preview">
-        <Link to={`/postdetails/:id/:slug`}>
+        <Link to={`/blog/:id/:slug`}>
           <img
             src={bannerImageUrl}
             alt={title}
