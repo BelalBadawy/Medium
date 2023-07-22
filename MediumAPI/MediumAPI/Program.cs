@@ -3,10 +3,12 @@ using MediumAPI.Data.Entites;
 using MediumAPI.Entites;
 using MediumAPI.Middlewares;
 using MediumAPI.Models;
+using MediumAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
@@ -66,19 +68,38 @@ namespace MediumAPI
             builder.Services.AddMemoryCache();
             builder.Services.AddDistributedMemoryCache();
 
+            builder.Services.AddScoped<JWTService>();
+            builder.Services.AddScoped<EmailService>();
 
             builder.Services.AddCors(options =>
             {
                 //.AllowAnyOrigin()
                 options.AddPolicy("Open",
                     builder => builder.WithOrigins(
-                        "http://localhost:3000",
+                        "http://localhost:4200",
                         "http://www.contoso.com")
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials());
             });
 
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var errors = actionContext.ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .SelectMany(x => x.Value.Errors)
+                    .Select(x => x.ErrorMessage).ToArray();
+
+                    var toReturn = new
+                    {
+                        Errors = errors
+                    };
+
+                    return new BadRequestObjectResult(toReturn);
+                };
+            });
 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -135,23 +156,23 @@ namespace MediumAPI
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-           .AddJwtBearer(o =>
-           {
-               o.RequireHttpsMetadata = false;
-               o.SaveToken = false;
-               o.TokenValidationParameters = new TokenValidationParameters
-               {
-                   ValidateIssuerSigningKey = true,
-                   ValidateIssuer = true,
-                   ValidateAudience = true,
-                   ValidateLifetime = true,
-                   ClockSkew = TimeSpan.Zero,
-                   ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-                   ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
-               };
+            .AddJwtBearer(o =>
+            {
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    // validate the token based on the key we have provided inside appsettings.development.json JWT:Key
+                    ValidateIssuerSigningKey = true,
+                    // the issuer singning key based on JWT:Key
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
+                    // the issuer which in here is the api project url we are using
+                    ValidIssuer = builder.Configuration["JWT:Issuer"],
+                    // validate the issuer (who ever is issuing the JWT)
+                    ValidateIssuer = true,
+                    // don't validate audience (angular side)
+                    ValidateAudience = false
+                };
 
-           });
+            });
 
 
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
